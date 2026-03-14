@@ -422,19 +422,19 @@ export default function ChatPanel() {
             const prevMsg = reversed[i - 1];
             const sameUser = prevMsg && prevMsg.userId === msg.userId;
             return (
-            <div key={origIndex} className={`group hover:bg-ghost-surface-hover/30 -mx-2 px-2 rounded transition-colors relative ${sameUser ? 'py-[1px]' : 'pt-2.5 pb-[1px]'}`}>
+            <div key={origIndex} className={`group hover:bg-ghost-surface-hover/20 -mx-3 px-3 rounded transition-colors relative ${sameUser ? 'py-[1px]' : 'pt-2.5 pb-[1px]'}`}>
               {!sameUser ? (
-                <p className="text-[14px] leading-[1.4]">
-                  <span className="font-semibold" style={{ color: msg.colour }}>{msg.displayName}</span>
+                <p className="text-[14px] leading-[1.375]">
+                  <span className="font-medium" style={{ color: msg.colour }}>{msg.displayName}</span>
                   <span className="text-ghost-text-secondary ml-1.5">{msg.text}</span>
                 </p>
               ) : (
-                <p className="text-[14px] leading-[1.4] text-ghost-text-secondary">{msg.text}</p>
+                <p className="text-[14px] leading-[1.375] text-ghost-text-secondary">{msg.text}</p>
               )}
               {msg.userId === userId && (
                 <button
                   onClick={() => deleteMessage(origIndex)}
-                  className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded text-ghost-text-muted hover:text-ghost-error-red hover:bg-ghost-surface transition-all"
+                  className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded text-ghost-text-muted hover:text-ghost-error-red hover:bg-ghost-error-red/10 transition-all"
                   title="Delete message"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -455,7 +455,7 @@ export default function ChatPanel() {
         {showEmoji && (
           <div
             ref={emojiRef}
-            className="absolute bottom-14 right-2 w-[220px] bg-[#050508] border border-ghost-border rounded-xl shadow-xl p-2 z-50"
+            className="absolute bottom-14 right-2 w-[220px] bg-[#111214] border border-ghost-border rounded-lg shadow-popup animate-popup p-2 z-50"
           >
             <div className="text-[10px] font-semibold text-ghost-text-muted uppercase tracking-wider px-1 pb-1.5">Smileys</div>
             <div className="grid grid-cols-7 gap-0.5">
@@ -483,9 +483,9 @@ export default function ChatPanel() {
             </div>
           </div>
         )}
-        <div className="flex items-center bg-ghost-surface-hover rounded-xl">
+        <div className="flex items-center bg-ghost-surface-hover/60 rounded-lg border border-ghost-border/30">
           <input
-            className="flex-1 min-w-0 bg-transparent text-[14px] text-ghost-text-primary placeholder:text-ghost-text-muted pl-4 py-3 pr-2 outline-none"
+            className="flex-1 min-w-0 bg-transparent text-[14px] text-ghost-text-primary placeholder:text-ghost-text-muted pl-3 py-2.5 pr-2 outline-none"
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}

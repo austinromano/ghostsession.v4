@@ -11,19 +11,19 @@
 
   /* Discord-style thin scrollbars */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0A0A0F;
+    background: transparent;
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb {
-    background: #161624;
+    background: #1a1b1e;
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #1E1E30;
+    background: #27282d;
   }
 
   /* Selection */
@@ -73,4 +73,12 @@ input[type="range"].track-volume::-webkit-slider-thumb:hover {
            focus:outline-none focus:ring-2 focus:ring-ghost-purple/40
            transition-colors;
   }
+}
+
+@keyframes fade-in-popup {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-popup {
+  animation: fade-in-popup 150ms ease-out;
 }

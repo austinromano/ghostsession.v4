@@ -9,8 +9,8 @@ export default {
           bg: '#000000',
           surface: '#0A0A0F',
           'surface-light': '#0F0F18',
-          'surface-hover': '#141420',
-          border: '#161624',
+          'surface-hover': '#1A1A28',
+          border: '#1E1E30',
           green: '#00FFC8',
           cyan: '#00B4D8',
           purple: '#5865F2',
@@ -29,6 +29,9 @@ export default {
           'sidebar': '#0A0A0F',
           'sidebar-dark': '#050508',
         },
+      },
+      boxShadow: {
+        'popup': '0 0 0 1px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.4)',
       },
       fontFamily: {
         sans: ['gg sans', 'Noto Sans', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],

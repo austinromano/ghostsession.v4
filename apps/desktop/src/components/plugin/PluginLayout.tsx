@@ -60,13 +60,13 @@ function ProjectListSidebar({
   return (
     <div className="flex flex-col h-full">
       {/* Ghost Session branding */}
-      <div className="px-4 pt-4 pb-3 flex items-center gap-2.5">
-        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" className="shrink-0">
+      <div className="px-4 pt-4 pb-3 flex items-center gap-2.5 border-b border-ghost-border/30 mb-1">
+        <svg width="32" height="32" viewBox="0 0 26 26" fill="none" className="shrink-0">
           <circle cx="13" cy="13" r="11.5" stroke="#00FFC8" strokeWidth="2" fill="none" />
           <circle cx="13" cy="13" r="7" stroke="#00FFC8" strokeWidth="2" fill="none" />
           <circle cx="13" cy="13" r="2.5" fill="#00FFC8" />
         </svg>
-        <span className="text-[13px] font-extrabold tracking-[0.2em] uppercase whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #00FFC8, #00B4D8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Ghost Session</span>
+        <span className="text-[16px] font-extrabold tracking-[0.15em] uppercase whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #00FFC8, #00B4D8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Ghost Session</span>
       </div>
 
       <FriendsPanel friends={friends} />
@@ -76,13 +76,13 @@ function ProjectListSidebar({
         <div>
           <button
             onClick={() => setFavoritesOpen((v) => !v)}
-            className="h-10 px-3 flex items-center justify-between w-full hover:bg-ghost-surface-hover/30 transition-colors"
+            className="h-8 px-3 flex items-center justify-between w-full hover:bg-ghost-surface-hover/30 transition-colors"
           >
             <span className="flex items-center gap-1.5">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" className={`text-ghost-text-muted transition-transform ${favoritesOpen ? 'rotate-90' : ''}`}>
                 <polygon points="2,0 8,5 2,10" />
               </svg>
-              <span className="text-[14px] font-bold text-ghost-text-secondary uppercase tracking-widest">
+              <span className="text-[15px] font-bold text-ghost-text-muted uppercase tracking-[0.06em]">
                 Favorites
               </span>
             </span>
@@ -93,7 +93,7 @@ function ProjectListSidebar({
                 <button
                   key={p.id}
                   onClick={() => onSelect(p.id)}
-                  className={`w-full text-left px-2 py-2 text-[15px] rounded-md transition-colors ${
+                  className={`w-full text-left px-2 py-1.5 text-[15px] rounded-md transition-colors ${
                     selectedId === p.id && !selectedPackId
                       ? 'bg-ghost-surface-hover text-white font-semibold'
                       : 'text-ghost-text-muted font-medium hover:bg-ghost-surface-hover/50 hover:text-ghost-text-secondary'
@@ -111,7 +111,7 @@ function ProjectListSidebar({
                 <button
                   key={sp.id}
                   onClick={() => onSelectPack(sp.id)}
-                  className={`w-full text-left px-2 py-2 text-[15px] rounded-md transition-colors ${
+                  className={`w-full text-left px-2 py-1.5 text-[15px] rounded-md transition-colors ${
                     selectedPackId === sp.id
                       ? 'bg-ghost-surface-hover text-white font-semibold'
                       : 'text-ghost-text-muted font-medium hover:bg-ghost-surface-hover/50 hover:text-ghost-text-secondary'
@@ -138,13 +138,13 @@ function ProjectListSidebar({
         <div>
           <button
             onClick={() => setProjectsOpen((v) => !v)}
-            className="h-10 px-3 flex items-center justify-between w-full hover:bg-ghost-surface-hover/30 transition-colors"
+            className="h-8 px-3 flex items-center justify-between w-full hover:bg-ghost-surface-hover/30 transition-colors"
           >
             <span className="flex items-center gap-1.5">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" className={`text-ghost-text-muted transition-transform ${projectsOpen ? 'rotate-90' : ''}`}>
                 <polygon points="2,0 8,5 2,10" />
               </svg>
-              <span className="text-[14px] font-bold text-ghost-text-secondary uppercase tracking-widest">
+              <span className="text-[15px] font-bold text-ghost-text-muted uppercase tracking-[0.06em]">
                 Projects
               </span>
             </span>
@@ -160,7 +160,7 @@ function ProjectListSidebar({
               {projects.map((p) => (
                 <div
                   key={p.id}
-                  className={`group flex items-center w-full px-2 py-2 text-[15px] rounded-md transition-colors cursor-pointer ${
+                  className={`group flex items-center w-full px-2 py-1.5 text-[15px] rounded-md transition-colors cursor-pointer ${
                     selectedId === p.id && !selectedPackId
                       ? 'bg-ghost-surface-hover text-white font-semibold'
                       : 'text-ghost-text-muted font-medium hover:bg-ghost-surface-hover/50 hover:text-ghost-text-secondary'
@@ -192,13 +192,13 @@ function ProjectListSidebar({
         <div>
           <button
             onClick={() => setPacksOpen((v) => !v)}
-            className="h-10 px-3 flex items-center justify-between w-full hover:bg-ghost-surface-hover/30 transition-colors"
+            className="h-8 px-3 flex items-center justify-between w-full hover:bg-ghost-surface-hover/30 transition-colors"
           >
             <span className="flex items-center gap-1.5">
               <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" className={`text-ghost-text-muted transition-transform ${packsOpen ? 'rotate-90' : ''}`}>
                 <polygon points="2,0 8,5 2,10" />
               </svg>
-              <span className="text-[14px] font-bold text-ghost-text-secondary uppercase tracking-widest">
+              <span className="text-[15px] font-bold text-ghost-text-muted uppercase tracking-[0.06em]">
                 Sample Packs
               </span>
             </span>
@@ -218,7 +218,7 @@ function ProjectListSidebar({
                 <div
                   key={sp.id}
                   onClick={() => onSelectPack(sp.id)}
-                  className={`group flex items-center w-full px-2 py-2 text-[15px] rounded-md transition-colors cursor-pointer ${
+                  className={`group flex items-center w-full px-2 py-1.5 text-[15px] rounded-md transition-colors cursor-pointer ${
                     selectedPackId === sp.id
                       ? 'bg-ghost-surface-hover text-white font-semibold'
                       : 'text-ghost-text-muted font-medium hover:bg-ghost-surface-hover/50 hover:text-ghost-text-secondary'
@@ -257,13 +257,13 @@ function FriendsPanel({ friends }: { friends: { id: string; displayName: string;
     <div className="shrink-0">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="h-10 px-3 flex items-center justify-between w-full hover:bg-ghost-surface-hover/30 transition-colors"
+        className="h-8 px-3 flex items-center justify-between w-full hover:bg-ghost-surface-hover/30 transition-colors"
       >
         <span className="flex items-center gap-1.5">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" className={`text-ghost-text-muted transition-transform ${open ? 'rotate-90' : ''}`}>
             <polygon points="2,0 8,5 2,10" />
           </svg>
-          <span className="text-[14px] font-bold text-ghost-text-secondary uppercase tracking-widest">
+          <span className="text-[15px] font-bold text-ghost-text-muted uppercase tracking-[0.06em]">
             Friends — {friends.length}
           </span>
         </span>
@@ -339,7 +339,7 @@ function CollaboratorPanel({ members, onInvite, isOwner, onRemove }: {
 
 function SettingsPopup({ user, onSignOut, onClose }: { user: any; onSignOut: () => void; onClose: () => void }) {
   return (
-    <div className="absolute right-2 top-12 w-56 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 p-2 border border-white/5">
+    <div className="absolute right-2 top-12 w-56 bg-[#111214] rounded-lg shadow-popup animate-popup z-50 p-2 border border-white/5">
       <div className="p-2 mb-1">
         <div className="flex items-center gap-2.5">
           <Avatar name={user?.displayName || '?'} size="md" colour="#5865F2" />
@@ -375,7 +375,7 @@ function NotificationPopup({ invitations, onAccept, onDecline, notifications, on
   onMarkRead: () => void;
 }) {
   return (
-    <div className="absolute right-14 top-12 w-80 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 border border-white/5 max-h-80 overflow-y-auto">
+    <div className="absolute right-14 top-12 w-80 bg-[#111214] rounded-lg shadow-popup animate-popup z-50 border border-white/5 max-h-80 overflow-y-auto">
       {/* Invitations section */}
       {invitations.length > 0 && (
         <>
@@ -488,7 +488,7 @@ function InviteModal({ open, onClose, projectId }: { open: boolean; onClose: () 
   };
 
   return (
-    <div className="absolute right-2 top-12 w-72 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 p-4 border border-white/5">
+    <div className="absolute right-2 top-12 w-72 bg-[#111214] rounded-lg shadow-popup animate-popup z-50 p-4 border border-white/5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-[12px] font-semibold text-ghost-text-secondary uppercase tracking-wide">Invite Collaborator</span>
         <button onClick={onClose} className="text-ghost-text-muted hover:text-ghost-text-primary text-sm">X</button>
@@ -1124,7 +1124,7 @@ function SamplePackContentView({
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
         {/* Pack info bar */}
         <div className="mb-4">
-          <div className="flex items-center gap-3 bg-ghost-surface/80 rounded-xl px-5 py-3 min-w-0">
+          <div className="flex items-center gap-3 bg-ghost-surface/80 rounded-lg border border-ghost-border/30 px-5 py-3 min-w-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5865F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
               <path d="M9 18V5l12-2v13" />
               <circle cx="6" cy="18" r="3" />
@@ -1163,7 +1163,7 @@ function SamplePackContentView({
                 </svg>
               </button>
               {showPackMenu && (
-                <div className="absolute right-0 top-full mt-1 w-40 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 border border-white/5 py-1">
+                <div className="absolute right-0 top-full mt-1 w-40 bg-[#111214] rounded-lg shadow-popup animate-popup z-50 border border-white/5 py-1">
                   <button
                     onClick={() => {
                       if (confirm('Delete this sample pack? This cannot be undone.')) {
@@ -1191,7 +1191,7 @@ function SamplePackContentView({
           const displayMembers = members.length > 0 ? members : user ? [{ userId: user.id, displayName: user.displayName, role: 'owner' }] : [];
           return displayMembers.length > 0 && (
             <div className="mb-4">
-              <div className="flex items-center gap-4 bg-ghost-surface/80 rounded-xl px-5 py-3">
+              <div className="flex items-center gap-4 bg-ghost-surface/80 rounded-lg border border-ghost-border/30 px-5 py-3">
                 <div className="flex items-center -space-x-2.5">
                   {[...displayMembers].sort((a: any, b: any) => (a.role === 'owner' ? -1 : b.role === 'owner' ? 1 : 0)).map((m: any) => (
                     <div key={m.userId} className="relative group cursor-pointer transition-transform hover:scale-110 hover:z-10" title={m.displayName}>
@@ -1222,7 +1222,7 @@ function SamplePackContentView({
 
                 <button
                   onClick={onInvite}
-                  className="shrink-0 px-4 py-1.5 text-[14px] font-bold bg-ghost-green text-black rounded-lg hover:bg-ghost-green/85 transition-colors shadow-[0_0_12px_rgba(0,255,200,0.25)]"
+                  className="shrink-0 px-4 py-1.5 text-[14px] font-bold bg-ghost-green text-black rounded-lg hover:bg-ghost-green/85 transition-colors"
                 >
                   Invite
                 </button>
@@ -1670,7 +1670,7 @@ export default function PluginLayout() {
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-ghost-surface-light relative">
       {/* Left sidebar */}
-      <div className="w-[220px] shrink-0 bg-ghost-surface flex flex-col">
+      <div className="w-[240px] shrink-0 bg-ghost-surface flex flex-col">
         <div className="flex-1 min-h-0 flex flex-col">
           <ProjectListSidebar
             projects={projects}
@@ -1689,7 +1689,7 @@ export default function PluginLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header bar */}
-        <div className="bg-ghost-surface shadow-[0_1px_0_rgba(0,0,0,0.4)] flex items-stretch shrink-0 relative">
+        <div className="bg-ghost-surface shadow-[0_1px_0_rgba(0,0,0,0.4)] flex items-stretch shrink-0 relative h-14">
           <div className="flex-1 flex items-center pl-0 pr-4">
             {/* Friend search bar — expands full width of header */}
             {showFriendSearch && (
@@ -1755,7 +1755,7 @@ export default function PluginLayout() {
             {/* Add Friend button */}
             <button
               onClick={() => { setShowFriendSearch(!showFriendSearch); setFriendSearchQuery(''); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg font-semibold text-[14px] bg-ghost-green text-black hover:bg-ghost-green/85 transition-colors shadow-[0_0_12px_rgba(0,255,200,0.25)]"
+              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg font-semibold text-[14px] bg-ghost-green text-black hover:bg-ghost-green/85 transition-colors"
               title="Add Friend"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1778,6 +1778,17 @@ export default function PluginLayout() {
               className="text-ghost-text-secondary hover:text-ghost-purple transition-colors shrink-0"
             >
               <BellIcon count={invitations.length + chatNotifications.length} />
+            </button>
+
+            {/* Inbox icon */}
+            <button
+              className="text-ghost-text-secondary hover:text-ghost-purple transition-colors shrink-0"
+              title="Inbox"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 12 16 12 14 15 10 15 8 12 2 12" />
+                <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+              </svg>
             </button>
 
             {/* Settings gear */}
@@ -1828,7 +1839,7 @@ export default function PluginLayout() {
               <div className="flex-1 overflow-y-auto px-4 pt-4 pb-2">
                 {/* Project info bar */}
                 <div className="mb-4">
-                  <div className="flex items-center gap-3 bg-ghost-surface/80 rounded-xl px-5 py-3 min-w-0">
+                  <div className="flex items-center gap-3 bg-ghost-surface/80 rounded-lg border border-ghost-border/30 px-5 py-3 min-w-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00FFC8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                       <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                     </svg>
@@ -1882,7 +1893,7 @@ export default function PluginLayout() {
                         </svg>
                       </button>
                       {showProjectMenu && (
-                        <div className="absolute right-0 top-full mt-1 w-40 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 border border-white/5 py-1">
+                        <div className="absolute right-0 top-full mt-1 w-40 bg-[#111214] rounded-lg shadow-popup animate-popup z-50 border border-white/5 py-1">
                           <button
                             onClick={handleShareProject}
                             className="w-full px-3 py-1.5 text-[13px] text-left text-ghost-text-secondary hover:bg-ghost-surface-hover hover:text-white transition-colors flex items-center gap-2"
@@ -1927,7 +1938,7 @@ export default function PluginLayout() {
 
                 {/* Collaborators bar */}
                 <div className="mb-4">
-                <div className="flex items-center gap-4 bg-ghost-surface/80 rounded-xl px-5 py-3">
+                <div className="flex items-center gap-4 bg-ghost-surface/80 rounded-lg border border-ghost-border/30 px-5 py-3">
                   <div className="flex items-center -space-x-2.5">
                     {[...members].sort((a: any, b: any) => (a.role === 'owner' ? -1 : b.role === 'owner' ? 1 : 0)).map((m: any) => (
                       <div key={m.userId} className="relative group cursor-pointer transition-transform hover:scale-110 hover:z-10" title={m.displayName}>
@@ -1976,7 +1987,7 @@ export default function PluginLayout() {
 
                   <button
                     onClick={() => setShowInvite(!showInvite)}
-                    className="shrink-0 px-4 py-1.5 text-[14px] font-bold bg-ghost-green text-black rounded-lg hover:bg-ghost-green/85 transition-colors shadow-[0_0_12px_rgba(0,255,200,0.25)]"
+                    className="shrink-0 px-4 py-1.5 text-[14px] font-bold bg-ghost-green text-black rounded-lg hover:bg-ghost-green/85 transition-colors"
                   >
                     Invite
                   </button>
@@ -1986,7 +1997,7 @@ export default function PluginLayout() {
 
                 {/* Version History panel */}
                 {showVersionHistory && (
-                  <div className="mb-4 bg-ghost-surface/80 rounded-xl overflow-hidden border border-ghost-border/50">
+                  <div className="mb-4 bg-ghost-surface/80 rounded-lg border border-ghost-border/30 overflow-hidden border border-ghost-border/50">
                     <div className="px-4 py-2 border-b border-ghost-border/30 flex items-center justify-between">
                       <span className="text-[13px] font-bold text-ghost-text-secondary uppercase tracking-wider">Version History</span>
                       <span className="text-[11px] text-ghost-text-muted">{versions.length} snapshot{versions.length !== 1 ? 's' : ''}</span>
