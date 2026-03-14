@@ -2,10 +2,11 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { HTTPException } from 'hono/http-exception';
 import { db } from '../db/index.js';
-import { projects, projectMembers, tracks, users, invitations } from '../db/schema.js';
+import { projects, projectMembers, tracks, users, invitations, chatMessages } from '../db/schema.js';
 import { eq, or, and, desc, like } from 'drizzle-orm';
 import { authMiddleware, type AuthUser } from '../middleware/auth.js';
 import { createAutoSnapshot } from '../lib/autoSnapshot.js';
+import { postActivityComment } from '../lib/activityComment.js';
 
 const projectRoutes = new Hono();
 projectRoutes.use('*', authMiddleware);
@@ -122,6 +123,7 @@ projectRoutes.patch('/:id', async (c) => {
 
   const changes = Object.keys(body).join(', ');
   createAutoSnapshot(projectId, user.id, `Updated project: ${changes}`);
+  postActivityComment(projectId, user.id, `✏️ updated project settings: ${changes}`);
 
   return c.json({ success: true, data: updated });
 });
@@ -182,6 +184,8 @@ projectRoutes.post('/:id/members', async (c) => {
     }).run();
   } catch {} // duplicate invitation
 
+  postActivityComment(projectId, user.id, `📨 invited ${invitee.displayName} to the project`);
+
   return c.json({ success: true, message: 'Invitation sent' });
 });
 
@@ -205,11 +209,71 @@ projectRoutes.delete('/:id/members/:userId', async (c) => {
     throw new HTTPException(400, { message: 'Cannot remove yourself from the project' });
   }
 
+  // Get the removed user's name for the activity comment
+  const [removedUser] = db.select().from(users).where(eq(users.id, targetUserId)).limit(1).all();
+
   db.delete(projectMembers)
     .where(and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, targetUserId)))
     .run();
 
+  postActivityComment(projectId, user.id, `👋 removed ${removedUser?.displayName || 'a member'} from the project`);
+
   return c.json({ success: true });
+});
+
+// Leave a project (non-owner members only)
+projectRoutes.post('/:id/leave', async (c) => {
+  const user = c.get('user') as AuthUser;
+  const projectId = c.req.param('id');
+
+  const membership = db.select().from(projectMembers)
+    .where(and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, user.id)))
+    .limit(1).all();
+
+  if (membership.length === 0) {
+    throw new HTTPException(404, { message: 'Not a member of this project' });
+  }
+
+  if (membership[0].role === 'owner') {
+    throw new HTTPException(400, { message: 'Owner cannot leave the project. Transfer ownership or delete it.' });
+  }
+
+  postActivityComment(projectId, user.id, `👋 left the project`);
+
+  db.delete(projectMembers)
+    .where(and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, user.id)))
+    .run();
+
+  return c.json({ success: true });
+});
+
+// Get chat history for a project
+projectRoutes.get('/:id/chat', async (c) => {
+  const projectId = c.req.param('id');
+  const limit = parseInt(c.req.query('limit') || '100', 10);
+
+  const messages = db.select({
+    userId: chatMessages.userId,
+    displayName: chatMessages.displayName,
+    colour: chatMessages.colour,
+    text: chatMessages.text,
+    createdAt: chatMessages.createdAt,
+  })
+    .from(chatMessages)
+    .where(eq(chatMessages.projectId, projectId))
+    .orderBy(desc(chatMessages.createdAt))
+    .limit(limit)
+    .all()
+    .reverse() // oldest first
+    .map((m) => ({
+      userId: m.userId,
+      displayName: m.displayName,
+      colour: m.colour,
+      text: m.text,
+      timestamp: new Date(m.createdAt).getTime(),
+    }));
+
+  return c.json({ success: true, data: messages });
 });
 
 export default projectRoutes;

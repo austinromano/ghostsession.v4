@@ -41,10 +41,16 @@ export const api = {
   updateProject: (id: string, data: Partial<CreateProjectRequest>) =>
     request<Project>('PATCH', `/projects/${id}`, data),
   deleteProject: (id: string) => request<void>('DELETE', `/projects/${id}`),
-  inviteMember: (id: string, email: string, role = 'editor') =>
-    request<void>('POST', `/projects/${id}/members`, { email, role }),
+  inviteMember: (id: string, email: string, name?: string, role = 'editor') =>
+    request<void>('POST', `/projects/${id}/members`, { email: email || undefined, name: name || undefined, role }),
   removeMember: (id: string, userId: string) =>
     request<void>('DELETE', `/projects/${id}/members/${userId}`),
+  leaveProject: (id: string) =>
+    request<void>('POST', `/projects/${id}/leave`),
+
+  // Chat
+  getChatHistory: (projectId: string) =>
+    request<{ userId: string; displayName: string; colour: string; text: string; timestamp: number }[]>('GET', `/projects/${projectId}/chat`),
 
   // Tracks
   listTracks: (projectId: string) => request<Track[]>('GET', `/projects/${projectId}/tracks`),
@@ -70,6 +76,12 @@ export const api = {
     request<Comment>('PATCH', `/projects/${projectId}/comments/${commentId}`, { text }),
   deleteComment: (projectId: string, commentId: string) =>
     request<void>('DELETE', `/projects/${projectId}/comments/${commentId}`),
+
+  // Notifications
+  getNotifications: () =>
+    request<{ id: string; type: string; message: string; createdAt: string }[]>('GET', '/notifications'),
+  markNotificationsRead: () =>
+    request<void>('POST', '/notifications/read'),
 
   // Users
   listUsers: () => request<{ id: string; displayName: string; email: string; avatarUrl: string | null }[]>('GET', '/users'),

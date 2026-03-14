@@ -118,6 +118,11 @@ samplePackRoutes.post('/:id/items', async (c) => {
   }).run();
 
   const [item] = db.select().from(samplePackItems).where(eq(samplePackItems.id, id)).all();
+
+  // Update pack's updatedAt
+  db.update(samplePacks).set({ updatedAt: new Date().toISOString() })
+    .where(eq(samplePacks.id, packId)).run();
+
   return c.json({ success: true, data: item }, 201);
 });
 
@@ -137,6 +142,10 @@ samplePackRoutes.delete('/:id/items/:itemId', async (c) => {
   db.delete(samplePackItems)
     .where(and(eq(samplePackItems.packId, packId), eq(samplePackItems.id, itemId)))
     .run();
+
+  // Update pack's updatedAt
+  db.update(samplePacks).set({ updatedAt: new Date().toISOString() })
+    .where(eq(samplePacks.id, packId)).run();
 
   return c.json({ success: true });
 });

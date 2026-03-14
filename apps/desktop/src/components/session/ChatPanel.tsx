@@ -404,7 +404,7 @@ export default function ChatPanel() {
         </div>
       )}
 
-      {/* Chat messages */}
+      {/* Chat messages — newest at top */}
       <div className="flex-1 overflow-y-auto px-3 pt-3 pb-1 space-y-3">
         {chatMessages.length === 0 && (
           <div className="flex flex-col items-center justify-center py-10 gap-2 text-center">
@@ -415,26 +415,17 @@ export default function ChatPanel() {
             <p className="text-[13px] text-ghost-text-muted text-center">Send a message to<br />your collaborators</p>
           </div>
         )}
-        {chatMessages.map((msg, i) => {
-          const d = new Date(msg.timestamp);
-          const now = new Date();
-          const isToday = d.toDateString() === now.toDateString();
-          const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
-          const isYesterday = d.toDateString() === yesterday.toDateString();
-          const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-          const dateLabel = isToday ? 'Today' : isYesterday ? 'Yesterday' : d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        {[...chatMessages].reverse().map((msg, i) => {
+          const origIndex = chatMessages.length - 1 - i;
           return (
-          <div key={i} className="group hover:bg-ghost-surface-hover/30 -mx-1 px-1 py-1 rounded transition-colors relative">
-            <div className="flex items-baseline gap-2">
-              <span className="text-[13px] font-semibold" style={{ color: msg.colour }}>
-                {msg.displayName}
-              </span>
-              <span className="text-[10px] text-ghost-text-muted font-mono opacity-60 group-hover:opacity-100 transition-opacity">{dateLabel} at {time}</span>
-            </div>
-            <p className="text-[13px] text-ghost-text-secondary leading-snug">{msg.text}</p>
+          <div key={origIndex} className="group hover:bg-ghost-surface-hover/30 -mx-1 px-1 py-1 rounded transition-colors relative">
+            <p className="text-[13px] leading-snug">
+              <span className="font-semibold" style={{ color: msg.colour }}>{msg.displayName}</span>
+              <span className="text-ghost-text-secondary ml-1.5">{msg.text}</span>
+            </p>
             {msg.userId === userId && (
               <button
-                onClick={() => deleteMessage(i)}
+                onClick={() => deleteMessage(origIndex)}
                 className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded text-ghost-text-muted hover:text-ghost-error-red hover:bg-ghost-surface transition-all"
                 title="Delete message"
               >
@@ -447,7 +438,6 @@ export default function ChatPanel() {
           </div>
         );
         })}
-        <div ref={bottomRef} />
       </div>
 
       {/* Chat input — Discord style */}

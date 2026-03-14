@@ -128,6 +128,16 @@ export const samplePackItems = sqliteTable('sample_pack_items', {
   createdAt: timestamp('created_at').notNull(),
 });
 
+export const chatMessages = sqliteTable('chat_messages', {
+  id: uuid().primaryKey(),
+  projectId: text('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id),
+  displayName: text('display_name').notNull(),
+  colour: text('colour').notNull(),
+  text: text('text').notNull(),
+  createdAt: timestamp('created_at').notNull(),
+});
+
 export const notifications = sqliteTable('notifications', {
   id: uuid().primaryKey(),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),

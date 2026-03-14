@@ -47,6 +47,10 @@ export function sendChat(projectId: string, text: string) {
   socket?.emit('chat-message', { projectId, text });
 }
 
+export function deleteChatMessage(projectId: string, timestamp: number) {
+  socket?.emit('delete-chat-message', { projectId, timestamp });
+}
+
 // WebRTC signaling
 export function sendWebRTCOffer(projectId: string, targetUserId: string, offer: RTCSessionDescriptionInit, streamType?: StreamType) {
   socket?.emit('webrtc-offer', { projectId, targetUserId, offer, streamType });

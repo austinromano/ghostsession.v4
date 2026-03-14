@@ -6,6 +6,7 @@ import { versions, projectMembers, users, files, tracks, projects } from '../db/
 import { eq, and, desc } from 'drizzle-orm';
 import { authMiddleware, type AuthUser } from '../middleware/auth.js';
 import { createAutoSnapshot } from '../lib/autoSnapshot.js';
+import { postActivityComment } from '../lib/activityComment.js';
 
 const versionRoutes = new Hono();
 versionRoutes.use('*', authMiddleware);
@@ -112,9 +113,6 @@ versionRoutes.post('/:versionId/revert', async (c) => {
     throw new HTTPException(400, { message: 'This version has no snapshot to revert to' });
   }
 
-  // Save a snapshot of current state before reverting
-  createAutoSnapshot(projectId, user.id, `Before revert to V${version.versionNumber}`);
-
   // Restore project settings
   db.update(projects).set({
     name: snapshot.name,
@@ -128,6 +126,26 @@ versionRoutes.post('/:versionId/revert', async (c) => {
 
   // Delete all current tracks
   db.delete(tracks).where(eq(tracks.projectId, projectId)).run();
+
+  // Restore file records from snapshot (re-insert any that were deleted)
+  if (snapshot.files) {
+    for (const f of snapshot.files) {
+      // Only re-insert if the file record no longer exists
+      const [existing] = db.select().from(files).where(eq(files.id, f.id)).limit(1).all();
+      if (!existing) {
+        db.insert(files).values({
+          id: f.id,
+          projectId: f.projectId || projectId,
+          uploadedBy: f.uploadedBy,
+          fileName: f.fileName,
+          fileSize: f.fileSize,
+          mimeType: f.mimeType,
+          s3Key: f.s3Key,
+          createdAt: f.createdAt,
+        }).run();
+      }
+    }
+  }
 
   // Restore tracks from snapshot
   for (const t of snapshot.tracks) {
@@ -150,8 +168,7 @@ versionRoutes.post('/:versionId/revert', async (c) => {
     }).run();
   }
 
-  // Create a new snapshot marking the revert
-  createAutoSnapshot(projectId, user.id, `Reverted to V${version.versionNumber}`);
+  postActivityComment(projectId, user.id, `⏪ reverted project to version ${version.versionNumber}: ${version.name}`);
 
   return c.json({ success: true, message: `Reverted to version ${version.versionNumber}` });
 });

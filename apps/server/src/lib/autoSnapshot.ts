@@ -30,7 +30,7 @@ export function createAutoSnapshot(projectId: string, userId: string, actionName
       };
     });
 
-    // Build full project snapshot
+    // Build full project snapshot (includes file records for restore)
     const snapshot = {
       name: project.name,
       description: project.description || '',
@@ -52,6 +52,16 @@ export function createAutoSnapshot(projectId: string, userId: string, actionName
         bpm: t.bpm ?? null,
         key: t.key ?? null,
         position: t.position ?? 0,
+      })),
+      files: projectFiles.map((f) => ({
+        id: f.id,
+        projectId: f.projectId,
+        uploadedBy: f.uploadedBy,
+        fileName: f.fileName,
+        fileSize: f.fileSize,
+        mimeType: f.mimeType,
+        s3Key: f.s3Key,
+        createdAt: f.createdAt,
       })),
     };
 

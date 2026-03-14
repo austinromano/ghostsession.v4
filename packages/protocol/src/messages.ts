@@ -19,6 +19,10 @@ export interface ClientToServerEvents {
     projectId: string;
     text: string;
   }) => void;
+  'delete-chat-message': (data: {
+    projectId: string;
+    timestamp: number;
+  }) => void;
   'webrtc-offer': (data: {
     projectId: string;
     targetUserId: string;
@@ -65,6 +69,9 @@ export interface ServerToClientEvents {
     displayName: string;
     colour: string;
     text: string;
+    timestamp: number;
+  }) => void;
+  'delete-chat-message': (data: {
     timestamp: number;
   }) => void;
   'user-joined': (data: {

@@ -18,6 +18,7 @@ interface SamplePack {
   id: string;
   name: string;
   samples: { id: string; name: string; fileId?: string }[];
+  updatedAt?: string;
 }
 
 function ProjectListSidebar({
@@ -359,27 +360,70 @@ function SettingsPopup({ user, onSignOut, onClose }: { user: any; onSignOut: () 
   );
 }
 
-function NotificationPopup({ invitations, onAccept, onDecline }: { invitations: Invitation[]; onAccept: (id: string) => void; onDecline: (id: string) => void }) {
+interface Notification {
+  id: string;
+  type: string;
+  message: string;
+  createdAt: string;
+}
+
+function NotificationPopup({ invitations, onAccept, onDecline, notifications, onMarkRead }: {
+  invitations: Invitation[];
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
+  notifications: Notification[];
+  onMarkRead: () => void;
+}) {
   return (
-    <div className="absolute right-14 top-12 w-72 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 border border-white/5">
-      <div className="p-3">
-        <span className="text-[11px] font-semibold text-ghost-text-secondary uppercase tracking-wide">Invitations</span>
-      </div>
-      {invitations.length === 0 ? (
-        <div className="p-4 text-center text-xs text-ghost-text-muted italic">No pending invitations</div>
-      ) : (
-        <div className="max-h-60 overflow-y-auto">
-          {invitations.map((inv) => (
-            <div key={inv.id} className="p-3 border-b border-ghost-border/50">
-              <p className="text-xs font-bold text-ghost-green">{inv.inviterName}</p>
-              <p className="text-[10px] text-ghost-text-muted mt-0.5">invited you to <span className="text-ghost-text-secondary">{inv.projectName}</span></p>
-              <div className="flex gap-1.5 mt-2">
-                <button onClick={() => onAccept(inv.id)} className="px-3 py-1 text-[10px] font-semibold bg-ghost-green/10 text-ghost-green border border-ghost-green/30 rounded hover:bg-ghost-green/20">Accept</button>
-                <button onClick={() => onDecline(inv.id)} className="px-2 py-1 text-[10px] font-semibold text-ghost-text-muted hover:text-ghost-error-red">X</button>
+    <div className="absolute right-14 top-12 w-72 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 border border-white/5 max-h-80 overflow-y-auto">
+      {/* Invitations section */}
+      {invitations.length > 0 && (
+        <>
+          <div className="p-3 pb-1">
+            <span className="text-[11px] font-semibold text-ghost-text-secondary uppercase tracking-wide">Invitations</span>
+          </div>
+          <div>
+            {invitations.map((inv) => (
+              <div key={inv.id} className="p-3 border-b border-ghost-border/50">
+                <p className="text-xs font-bold text-ghost-green">{inv.inviterName}</p>
+                <p className="text-[10px] text-ghost-text-muted mt-0.5">invited you to <span className="text-ghost-text-secondary">{inv.projectName}</span></p>
+                <div className="flex gap-1.5 mt-2">
+                  <button onClick={() => onAccept(inv.id)} className="px-3 py-1 text-[10px] font-semibold bg-ghost-green/10 text-ghost-green border border-ghost-green/30 rounded hover:bg-ghost-green/20">Accept</button>
+                  <button onClick={() => onDecline(inv.id)} className="px-2 py-1 text-[10px] font-semibold text-ghost-text-muted hover:text-ghost-error-red">X</button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Notifications section */}
+      {notifications.length > 0 && (
+        <>
+          <div className="p-3 pb-1 flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-ghost-text-secondary uppercase tracking-wide">Messages</span>
+            <button onClick={onMarkRead} className="text-[10px] text-ghost-purple hover:text-ghost-purple/80 font-medium">Mark all read</button>
+          </div>
+          <div>
+            {notifications.map((n) => (
+              <div key={n.id} className="px-3 py-2 border-b border-ghost-border/50 flex gap-2 items-start">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5865F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] text-ghost-text-secondary leading-snug">{n.message}</p>
+                  <p className="text-[9px] text-ghost-text-muted mt-0.5">
+                    {new Date(n.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {invitations.length === 0 && notifications.length === 0 && (
+        <div className="p-4 text-center text-xs text-ghost-text-muted italic">No new notifications</div>
       )}
     </div>
   );
@@ -402,17 +446,41 @@ function BellIcon({ count }: { count: number }) {
 }
 
 function InviteModal({ open, onClose, projectId }: { open: boolean; onClose: () => void; projectId: string }) {
-  const [email, setEmail] = useState('');
+  const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
+  const [suggestions, setSuggestions] = useState<{ id: string; displayName: string; email: string; avatarUrl: string | null }[]>([]);
+  const [allUsers, setAllUsers] = useState<{ id: string; displayName: string; email: string; avatarUrl: string | null }[]>([]);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      api.listUsers().then(setAllUsers).catch(() => {});
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!query.trim()) { setSuggestions([]); return; }
+    const q = query.toLowerCase();
+    const matches = allUsers.filter(
+      (u) => u.displayName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
+    );
+    setSuggestions(matches.slice(0, 5));
+  }, [query, allUsers]);
 
   if (!open) return null;
 
-  const handleInvite = async () => {
-    if (!email.trim()) return;
+  const handleInvite = async (emailOrName: string) => {
+    if (!emailOrName.trim()) return;
     try {
-      await api.inviteMember(projectId, email.trim());
+      const isEmail = emailOrName.includes('@');
+      if (isEmail) {
+        await api.inviteMember(projectId, emailOrName.trim());
+      } else {
+        await api.inviteMember(projectId, '', emailOrName.trim());
+      }
       setStatus('Invited!');
-      setEmail('');
+      setQuery('');
+      setSuggestions([]);
       setTimeout(() => { setStatus(''); onClose(); }, 1000);
     } catch (err: any) {
       setStatus(err.message || 'Invite failed');
@@ -425,16 +493,40 @@ function InviteModal({ open, onClose, projectId }: { open: boolean; onClose: () 
         <span className="text-[11px] font-semibold text-ghost-text-secondary uppercase tracking-wide">Invite Collaborator</span>
         <button onClick={onClose} className="text-ghost-text-muted hover:text-ghost-text-primary text-sm">X</button>
       </div>
-      <input
-        className="ghost-input w-full text-sm mb-2"
-        placeholder="Email address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
-      />
-      <button onClick={handleInvite} className="w-full px-3 py-2 text-[13px] font-medium bg-ghost-purple text-white rounded hover:bg-[#4752C4] transition-colors">
-        Send Invite
-      </button>
+      <div className="relative">
+        <input
+          className="ghost-input w-full text-sm mb-0"
+          placeholder="Search by name or email..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleInvite(query)}
+          autoFocus
+        />
+        {suggestions.length > 0 && (
+          <div ref={suggestionsRef} className="mt-1 bg-[#0a0a12] rounded-lg border border-white/5 overflow-hidden">
+            {suggestions.map((u) => (
+              <button
+                key={u.id}
+                onClick={() => handleInvite(u.email)}
+                className="w-full px-3 py-2 flex items-center gap-2.5 hover:bg-ghost-surface-hover transition-colors text-left"
+              >
+                <div className="w-7 h-7 rounded-full bg-ghost-green text-black flex items-center justify-center text-[11px] font-bold shrink-0">
+                  {u.displayName?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-medium text-white truncate">{u.displayName}</p>
+                  <p className="text-[11px] text-ghost-text-muted truncate">{u.email}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {suggestions.length === 0 && query.trim() && (
+        <button onClick={() => handleInvite(query)} className="w-full mt-2 px-3 py-2 text-[13px] font-medium bg-ghost-purple text-white rounded hover:bg-[#4752C4] transition-colors">
+          Send Invite
+        </button>
+      )}
       {status && <p className={`text-xs mt-2 ${status === 'Invited!' ? 'text-ghost-green' : 'text-ghost-error-red'}`}>{status}</p>}
     </div>
   );
@@ -1032,18 +1124,64 @@ function SamplePackContentView({
       <div className="flex-1 overflow-y-auto px-3 pt-3 pb-0">
         {/* Pack info bar */}
         <div className="mb-3">
-          <div className="flex items-center gap-4 bg-ghost-surface/80 rounded-xl px-4 py-2.5">
+          <div className="flex items-center gap-3 bg-ghost-surface/80 rounded-xl px-4 py-2.5 min-w-0">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5865F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
               <path d="M9 18V5l12-2v13" />
               <circle cx="6" cy="18" r="3" />
               <circle cx="18" cy="16" r="3" />
             </svg>
             <input
-              className="text-[15px] font-bold text-white bg-transparent border-none outline-none hover:bg-ghost-surface-hover px-2 py-1 rounded-lg transition-colors flex-1 min-w-0"
+              className="text-[15px] font-bold text-white bg-transparent border-none outline-none hover:bg-ghost-surface-hover px-2 py-1 rounded-lg transition-colors min-w-[60px] flex-1"
               value={pack.name}
               onChange={(e) => onRenamePack(pack.id, e.target.value)}
             />
-            <span className="text-[11px] text-ghost-text-muted">{items.length} sample{items.length !== 1 ? 's' : ''}</span>
+            <span className="text-[11px] text-ghost-text-muted shrink-0">{items.length} sample{items.length !== 1 ? 's' : ''}</span>
+            {pack.updatedAt && (
+              <>
+                <div className="w-px h-4 bg-ghost-border shrink-0" />
+                <span className="text-[11px] text-ghost-text-muted flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span className="text-ghost-green font-medium">
+                    {new Date(pack.updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
+                  </span>
+                </span>
+              </>
+            )}
+            {/* Three-dot menu */}
+            <div className="relative" ref={packMenuRef}>
+              <button
+                onClick={() => setShowPackMenu(!showPackMenu)}
+                className="w-6 h-6 flex items-center justify-center rounded text-ghost-text-muted hover:text-white hover:bg-ghost-surface-hover transition-colors"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <circle cx="12" cy="5" r="2" />
+                  <circle cx="12" cy="12" r="2" />
+                  <circle cx="12" cy="19" r="2" />
+                </svg>
+              </button>
+              {showPackMenu && (
+                <div className="absolute right-0 top-full mt-1 w-40 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 border border-white/5 py-1">
+                  <button
+                    onClick={() => {
+                      if (confirm('Delete this sample pack? This cannot be undone.')) {
+                        onDeletePack(pack.id);
+                      }
+                      setShowPackMenu(false);
+                    }}
+                    className="w-full px-3 py-1.5 text-[12px] text-left text-ghost-error-red hover:bg-ghost-error-red/10 transition-colors flex items-center gap-2"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Delete Pack
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -1279,6 +1417,7 @@ export default function PluginLayout() {
   const [friendSearchResults, setFriendSearchResults] = useState<{ id: string; displayName: string; email: string; avatarUrl: string | null }[]>([]);
   const friendSearchRef = useRef<HTMLDivElement>(null);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [chatNotifications, setChatNotifications] = useState<Notification[]>([]);
   const [friends, setFriends] = useState<{ id: string; displayName: string; avatarUrl: string | null }[]>([]);
   const [samplePacks, setSamplePacks] = useState<SamplePack[]>([]);
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
@@ -1290,22 +1429,51 @@ export default function PluginLayout() {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [reverting, setReverting] = useState(false);
   const projectMenuRef = useRef<HTMLDivElement>(null);
+  const [projectName, setProjectName] = useState('');
+  const projectNameTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchSamplePacks = async () => {
     try {
       const packs = await api.listSamplePacks();
-      setSamplePacks(packs.map((p: any) => ({ id: p.id, name: p.name, samples: [] })));
+      setSamplePacks(packs.map((p: any) => ({ id: p.id, name: p.name, samples: [], updatedAt: p.updatedAt })));
+    } catch {}
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const notifs = await api.getNotifications();
+      setChatNotifications(notifs);
     } catch {}
   };
 
   useEffect(() => {
     fetchProjects();
     fetchInvitations();
+    fetchNotifications();
     fetchSamplePacks();
     api.listUsers().then(setFriends).catch(() => {});
-    const interval = setInterval(fetchInvitations, 10000);
-    return () => clearInterval(interval);
+    const pollInterval = setInterval(() => {
+      fetchInvitations();
+      fetchNotifications();
+    }, 10000);
+    return () => clearInterval(pollInterval);
   }, []);
+
+  // Real-time polling: refresh project data every 3 seconds
+  useEffect(() => {
+    if (!selectedProjectId) return;
+    const poll = setInterval(() => {
+      fetchProject(selectedProjectId);
+      fetchVersions(selectedProjectId);
+      fetchNotifications();
+    }, 3000);
+    return () => clearInterval(poll);
+  }, [selectedProjectId]);
+
+  // Sync project name local state
+  useEffect(() => {
+    if (currentProject) setProjectName(currentProject.name);
+  }, [currentProject?.id, currentProject?.name]);
 
   // Friend search — debounced query against user list
   useEffect(() => {
@@ -1372,12 +1540,34 @@ export default function PluginLayout() {
 
   const handleDeleteProject = async () => {
     if (!selectedProjectId) return;
+    if (!confirm('Are you sure you want to delete this project? This cannot be undone.')) return;
     try {
       await api.deleteProject(selectedProjectId);
+      leave();
+      audioCleanup();
       setSelectedProjectId(null);
       setShowProjectMenu(false);
       fetchProjects();
-    } catch {}
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete project');
+      setShowProjectMenu(false);
+    }
+  };
+
+  const handleLeaveProject = async () => {
+    if (!selectedProjectId) return;
+    if (!confirm('Leave this project? You will need a new invite to rejoin.')) return;
+    try {
+      await api.leaveProject(selectedProjectId);
+      leave();
+      audioCleanup();
+      setSelectedProjectId(null);
+      setShowProjectMenu(false);
+      fetchProjects();
+    } catch (err: any) {
+      alert(err.message || 'Failed to leave project');
+      setShowProjectMenu(false);
+    }
   };
 
   const handleShareProject = () => {
@@ -1577,10 +1767,17 @@ export default function PluginLayout() {
 
             {/* Bell icon */}
             <button
-              onClick={() => { setShowNotifs(!showNotifs); setShowSettings(false); }}
+              onClick={() => {
+                const opening = !showNotifs;
+                setShowNotifs(opening);
+                setShowSettings(false);
+                if (opening && chatNotifications.length > 0) {
+                  api.markNotificationsRead().then(() => setChatNotifications([])).catch(() => {});
+                }
+              }}
               className="text-ghost-text-secondary hover:text-ghost-purple transition-colors shrink-0"
             >
-              <BellIcon count={invitations.length} />
+              <BellIcon count={invitations.length + chatNotifications.length} />
             </button>
 
             {/* Settings gear */}
@@ -1609,6 +1806,8 @@ export default function PluginLayout() {
             invitations={invitations}
             onAccept={(id) => { acceptInvite(id); }}
             onDecline={(id) => { declineInvite(id); }}
+            notifications={chatNotifications}
+            onMarkRead={() => { api.markNotificationsRead().then(() => setChatNotifications([])).catch(() => {}); }}
           />
         )}
         {showInvite && selectedProjectId && (
@@ -1626,31 +1825,100 @@ export default function PluginLayout() {
               <div className="flex-1 overflow-y-auto px-3 pt-3 pb-0">
                 {/* Project info bar */}
                 <div className="mb-3">
-                  <div className="flex items-center gap-4 bg-ghost-surface/80 rounded-xl px-4 py-2.5">
+                  <div className="flex items-center gap-3 bg-ghost-surface/80 rounded-xl px-4 py-2.5 min-w-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00FFC8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                       <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                     </svg>
-                    <span className="text-[15px] font-bold text-white truncate">{currentProject.name}</span>
-                    <div className="flex-1" />
-                    <span className="text-[11px] text-ghost-text-muted uppercase tracking-wider font-semibold">BPM</span>
-                    <span className="text-[13px] font-bold text-white" style={{ fontFamily: "'Consolas', monospace" }}>{currentProject.tempo || 120}</span>
-                    <div className="w-px h-4 bg-ghost-border" />
-                    <span className="text-[11px] text-ghost-text-muted uppercase tracking-wider font-semibold">Key</span>
-                    <span className="text-[13px] font-bold text-white" style={{ fontFamily: "'Consolas', monospace" }}>{currentProject.key || 'C'}</span>
+                    <input
+                      className="text-[15px] font-bold text-white bg-transparent border-none outline-none hover:bg-ghost-surface-hover px-2 py-1 rounded-lg transition-colors min-w-[60px] flex-1"
+                      value={projectName}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setProjectName(val);
+                        if (projectNameTimer.current) clearTimeout(projectNameTimer.current);
+                        projectNameTimer.current = setTimeout(() => {
+                          if (val.trim()) updateProject(currentProject.id, { name: val });
+                        }, 500);
+                      }}
+                      onBlur={() => {
+                        if (projectNameTimer.current) clearTimeout(projectNameTimer.current);
+                        if (projectName.trim() && projectName !== currentProject.name) {
+                          updateProject(currentProject.id, { name: projectName });
+                        }
+                      }}
+                    />
+                    <span className="text-[11px] text-ghost-text-muted uppercase tracking-wider font-semibold shrink-0">BPM</span>
+                    <span className="text-[13px] font-bold text-white shrink-0" style={{ fontFamily: "'Consolas', monospace" }}>{currentProject.tempo || 120}</span>
+                    <div className="w-px h-4 bg-ghost-border shrink-0" />
+                    <span className="text-[11px] text-ghost-text-muted uppercase tracking-wider font-semibold shrink-0">Key</span>
+                    <span className="text-[13px] font-bold text-white shrink-0" style={{ fontFamily: "'Consolas', monospace" }}>{currentProject.key || 'C'}</span>
                     {currentProject.updatedAt && (
                       <>
-                        <div className="w-px h-4 bg-ghost-border" />
-                        <span className="text-[11px] text-ghost-text-muted flex items-center gap-1.5">
+                        <div className="w-px h-4 bg-ghost-border shrink-0" />
+                        <span className="text-[11px] text-ghost-text-muted flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60">
                             <circle cx="12" cy="12" r="10" />
                             <polyline points="12 6 12 12 16 14" />
                           </svg>
                           <span className="text-ghost-green font-medium">
-                            {new Date(currentProject.updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
+                            {new Date(currentProject.updatedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                           </span>
                         </span>
                       </>
                     )}
+                    {/* Project menu — far right */}
+                    <div className="relative" ref={projectMenuRef}>
+                      <button
+                        onClick={() => setShowProjectMenu(!showProjectMenu)}
+                        className="w-6 h-6 flex items-center justify-center rounded text-ghost-text-muted hover:text-white hover:bg-ghost-surface-hover transition-colors"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                          <circle cx="12" cy="5" r="2" />
+                          <circle cx="12" cy="12" r="2" />
+                          <circle cx="12" cy="19" r="2" />
+                        </svg>
+                      </button>
+                      {showProjectMenu && (
+                        <div className="absolute right-0 top-full mt-1 w-40 bg-[#050508] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.6)] z-50 border border-white/5 py-1">
+                          <button
+                            onClick={handleShareProject}
+                            className="w-full px-3 py-1.5 text-[12px] text-left text-ghost-text-secondary hover:bg-ghost-surface-hover hover:text-white transition-colors flex items-center gap-2"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                              <polyline points="16 6 12 2 8 6" />
+                              <line x1="12" y1="2" x2="12" y2="15" />
+                            </svg>
+                            Share
+                          </button>
+                          <div className="h-px bg-white/5 mx-2 my-1" />
+                          {currentProject.ownerId === user?.id ? (
+                            <button
+                              onClick={handleDeleteProject}
+                              className="w-full px-3 py-1.5 text-[12px] text-left text-ghost-error-red hover:bg-ghost-error-red/10 transition-colors flex items-center gap-2"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                              </svg>
+                              Delete Project
+                            </button>
+                          ) : (
+                            <button
+                              onClick={handleLeaveProject}
+                              className="w-full px-3 py-1.5 text-[12px] text-left text-ghost-error-red hover:bg-ghost-error-red/10 transition-colors flex items-center gap-2"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <polyline points="16 17 21 12 16 7" />
+                                <line x1="21" y1="12" x2="9" y2="12" />
+                              </svg>
+                              Leave Project
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -1736,7 +2004,7 @@ export default function PluginLayout() {
                               <div className="flex items-center gap-2 mt-0.5">
                                 <span className="text-[10px] text-ghost-text-muted">{v.createdByName || 'Unknown'}</span>
                                 <span className="text-[10px] text-ghost-green font-medium">
-                                  {new Date(v.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  {new Date(v.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}
                                 </span>
                               </div>
                             </div>

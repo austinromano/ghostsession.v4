@@ -2,10 +2,11 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { HTTPException } from 'hono/http-exception';
 import { db } from '../db/index.js';
-import { tracks, projectMembers } from '../db/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { tracks, projectMembers, projects, notifications } from '../db/schema.js';
+import { eq, and, ne } from 'drizzle-orm';
 import { authMiddleware, type AuthUser } from '../middleware/auth.js';
 import { createAutoSnapshot } from '../lib/autoSnapshot.js';
+import { postActivityComment } from '../lib/activityComment.js';
 
 const trackRoutes = new Hono();
 trackRoutes.use('*', authMiddleware);
@@ -60,6 +61,20 @@ trackRoutes.post('/', async (c) => {
   const [track] = db.select().from(tracks).where(eq(tracks.id, id)).all();
 
   createAutoSnapshot(projectId, user.id, `Added track: ${body.name}`);
+  postActivityComment(projectId, user.id, `📎 added a track: ${body.name}`);
+
+  // Notify other project members
+  const [proj] = db.select({ name: projects.name }).from(projects).where(eq(projects.id, projectId)).limit(1).all();
+  const members = db.select({ userId: projectMembers.userId }).from(projectMembers)
+    .where(and(eq(projectMembers.projectId, projectId), ne(projectMembers.userId, user.id))).all();
+  const now = new Date().toISOString();
+  for (const m of members) {
+    db.insert(notifications).values({
+      id: crypto.randomUUID(), userId: m.userId, type: 'track',
+      message: `${user.displayName} added "${body.name}" to ${proj?.name || 'a project'}`,
+      createdAt: now,
+    }).run();
+  }
 
   return c.json({ success: true, data: track }, 201);
 });
@@ -111,6 +126,20 @@ trackRoutes.delete('/:trackId', async (c) => {
   db.delete(tracks).where(eq(tracks.id, trackId)).run();
 
   createAutoSnapshot(projectId, user.id, `Deleted track: ${deletedName}`);
+  postActivityComment(projectId, user.id, `🗑️ removed a track: ${deletedName}`);
+
+  // Notify other project members
+  const [proj] = db.select({ name: projects.name }).from(projects).where(eq(projects.id, projectId)).limit(1).all();
+  const members = db.select({ userId: projectMembers.userId }).from(projectMembers)
+    .where(and(eq(projectMembers.projectId, projectId), ne(projectMembers.userId, user.id))).all();
+  const now = new Date().toISOString();
+  for (const m of members) {
+    db.insert(notifications).values({
+      id: crypto.randomUUID(), userId: m.userId, type: 'track',
+      message: `${user.displayName} removed "${deletedName}" from ${proj?.name || 'a project'}`,
+      createdAt: now,
+    }).run();
+  }
 
   return c.json({ success: true });
 });

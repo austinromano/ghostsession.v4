@@ -12,12 +12,14 @@ const COLLAB_COLOURS = [
   '#00FFC8', '#8B5CF6', '#FF6B6B', '#4ECDC4',
   '#FFD93D', '#FF8A5C', '#6C5CE7', '#E056C1',
 ];
-let colourIndex = 0;
 
-function nextColour(): string {
-  const c = COLLAB_COLOURS[colourIndex % COLLAB_COLOURS.length];
-  colourIndex++;
-  return c;
+/** Deterministic colour based on user ID */
+export function userColour(userId: string): string {
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = ((hash << 5) - hash + userId.charCodeAt(i)) | 0;
+  }
+  return COLLAB_COLOURS[Math.abs(hash) % COLLAB_COLOURS.length];
 }
 
 export function setupWebSocket(httpServer: HTTPServer) {
@@ -39,7 +41,7 @@ export function setupWebSocket(httpServer: HTTPServer) {
 
     socket.data.userId = user.id;
     socket.data.displayName = user.displayName;
-    socket.data.colour = nextColour();
+    socket.data.colour = userColour(user.id);
     next();
   });
 
@@ -56,5 +58,12 @@ export function setupWebSocket(httpServer: HTTPServer) {
     });
   });
 
+  ioInstance = io;
   return io;
+}
+
+let ioInstance: SocketServer | null = null;
+
+export function getIO() {
+  return ioInstance;
 }
